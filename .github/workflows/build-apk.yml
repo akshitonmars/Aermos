@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Aermos APK
+    name: Build Aermos Debug APK
     runs-on: ubuntu-latest
 
     steps:
@@ -30,20 +30,55 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Build Debug APK
+      - name: Generate Android debug keystore
+        shell: bash
         run: |
-          gradle --version
-          gradle assembleDebug --stacktrace --no-daemon
+          if [ ! -f "debug.keystore" ]; then
+            keytool -genkeypair \
+              -v \
+              -keystore debug.keystore \
+              -storepass android \
+              -keypass android \
+              -alias androiddebugkey \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
 
-      - name: Find APK
+      - name: Verify build files
+        shell: bash
         run: |
-          echo "APK files:"
-          find . -type f -name "*.apk" -print
+          test -f "settings.gradle.kts"
+          test -f "build.gradle.kts"
+          test -f "app/build.gradle.kts"
+          test -f "debug.keystore"
+
+      - name: Build Aermos debug APK
+        shell: bash
+        run: |
+          gradle :app:assembleDebug \
+            --stacktrace \
+            --no-daemon
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+
+          if [ ! -f "$APK" ]; then
+            echo "ERROR: APK was not generated."
+            echo "Searching for generated APK files:"
+            find . -type f -name "*.apk" -print
+            exit 1
+          fi
+
+          echo "Aermos APK successfully generated:"
+          ls -lh "$APK"
 
       - name: Upload Aermos APK
         uses: actions/upload-artifact@v4
         with:
           name: Aermos-debug-APK
-          path: |
-            app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
