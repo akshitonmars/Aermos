@@ -8,11 +8,11 @@ on:
 
 jobs:
   build:
-    name: Build Aermos APK
+    name: Build Aermos
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -20,18 +20,18 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
 
-      - name: Make Gradle executable
-        run: chmod +x ./gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2'
 
-      - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Build Debug APK
+        run: gradle assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: Upload Aermos APK
         uses: actions/upload-artifact@v4
         with:
           name: Aermos-debug
-          path: |
-            **/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
