@@ -1,0 +1,6 @@
+{
+  "name": "Aermos",
+  "description": "High-precision live atmospheric intelligence and dynamic meteorology by DeBroglie.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
